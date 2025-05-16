@@ -61,6 +61,8 @@ class GstCameraPlugin::Impl {
     void StopStreaming();
     void StopGstThread();
 
+
+    // Private members
     std::string udpHost{"127.0.0.1"};
     int udpPort{5600};
     bool useRtmpPipeline{false};
@@ -74,11 +76,11 @@ class GstCameraPlugin::Impl {
     unsigned int height{0};
 
     // Unused by actual pipeline since it's based on the gazebo topic rate?
-    unsigned int rate{5};
+    unsigned int rate{50};
 
     pthread_t threadId;
     bool isGstMainLoopActive{false};
-    bool requestedStartStreaming{false};
+    bool requestedStartStreaming{true};
 
     GMainLoop *gst_loop{nullptr};
     GstElement *source{nullptr};
@@ -176,6 +178,15 @@ void GstCameraPlugin::Configure(
         impl->enableTopic = _sdf->Get<std::string>("enable_topic");
     }
 
+    if (_sdf->HasElement("auto_start"))
+    {
+        impl->requestedStartStreaming = _sdf->Get<bool>("auto_start");
+    }
+    else
+    {
+        // Establecer a true por defecto
+        impl->requestedStartStreaming = true;
+    }
     //! @note subscriptions are deferred to Pre-Update as the enclosing
     //  sensor must be fully initialised before entity - component queries
     //  for topics names etc. to succeed.

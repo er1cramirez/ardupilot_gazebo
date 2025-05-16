@@ -70,7 +70,7 @@ class CameraZoomPlugin::Impl
 {
   /// \brief Handle a zoom command.
   public: void OnZoom(const msgs::Double &_msg);
-
+// ff
   /// \brief Initialise the rendering camera.
   public: void InitialiseCamera();
 
