@@ -13,7 +13,7 @@
 
     <joint name="camera_joint" type="fixed">
       <parent>iris_with_standoffs::base_link</parent>
-      <child>camera::base_link</child>
+      <child>camera::camera_link</child>
     </joint>
 
     <!-- plugins -->
