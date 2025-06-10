@@ -58,8 +58,8 @@
       filename="gz-sim-velocity-control-system"
       name="gz::sim::systems::VelocityControl">
       <!-- vels for circle moving y=-1 ang_z=-0.2 -->
-      <initial_linear>0 0 0</initial_linear>
-      <initial_angular>0 0 0</initial_angular>
+      <initial_linear>0 0.1 0</initial_linear>
+      <initial_angular>0 0 0.1</initial_angular>
       <lin_vel_min>-1 -1 -1</lin_vel_min>
       <lin_vel_max>1 1 1</lin_vel_max>
       <ang_vel_min>-1 -1 -1</ang_vel_min>
