@@ -89,6 +89,17 @@ target_link_libraries(ArduPilotPlugin PRIVATE
   gz-sim${GZ_SIM_VER}::gz-sim${GZ_SIM_VER}
 )
 
+add_library(DataLoggerPlugin
+  SHARED
+  src/DataLoggerPlugin.cc
+)
+target_include_directories(DataLoggerPlugin PRIVATE
+  include
+)
+target_link_libraries(DataLoggerPlugin PRIVATE
+  gz-sim${GZ_SIM_VER}::gz-sim${GZ_SIM_VER}
+)
+
 add_library(ParachutePlugin
   SHARED
   src/ParachutePlugin.cc
@@ -128,12 +139,21 @@ target_link_libraries(GstCameraPlugin PRIVATE
   ${GST_LINK_LIBRARIES}
 )
 
+# Add TestPlugin
+add_library(TestPlugin SHARED src/TestPlugin.cc)
+target_link_libraries(TestPlugin 
+  gz-sim8::gz-sim8
+  gz-common5::gz-common5
+  sdformat14::sdformat14
+)
+
 # --------------------------------------------------------------------------- #
 # Install.
 
 install(
   TARGETS
   ArduPilotPlugin
+  DataLoggerPlugin
   ParachutePlugin
   CameraZoomPlugin
   GstCameraPlugin

@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <sdf version="1.9">
   <world name="iris_runway_aruco">
-    <physics name="1ms" type="ignore">
+    <physics name="1ms" type="ode">
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
     </physics>
@@ -132,7 +132,7 @@
       <output_directory>/tmp/drone_sim_logs</output_directory>
       <entities>
         <entity>
-          <name>iris_with_standoffs</name>
+          <name>iris_with_fixed_camera</name>
           <type>model</type>
         </entity>
         <entity>
