@@ -22,9 +22,11 @@
 #include <iomanip>
 #include <cstdlib>
 #include <fstream>
+#include <functional>
 
 #include <gz/sim/components/Pose.hh>
 #include <gz/sim/components/LinearVelocity.hh>
+#include <gz/sim/components/LinearAcceleration.hh>
 #include <gz/sim/components/Model.hh>
 #include <gz/sim/components/Link.hh>
 #include <gz/sim/components/Name.hh>
@@ -37,6 +39,9 @@
 #include <gz/common/Console.hh>
 #include <gz/math/Pose3.hh>
 #include <gz/math/Vector3.hh>
+#include <gz/transport/Node.hh>
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/empty.pb.h>
 
 using namespace gz;
 using namespace sim;
@@ -50,6 +55,11 @@ struct EntityInfo
   Entity entity{kNullEntity};
   std::unique_ptr<std::ofstream> logFile;
   bool isValid{false};
+  
+  // For computed acceleration
+  math::Vector3d lastVelocity{math::Vector3d::Zero};
+  std::chrono::steady_clock::duration lastTime{0};
+  bool hasLastVelocity{false};
   
   // Constructor
   EntityInfo() : logFile(std::make_unique<std::ofstream>()) {}
@@ -86,6 +96,21 @@ class gz::sim::systems::DataLoggerPluginPrivate
 
   /// \brief Flag to indicate if this is the first update
   public: bool firstUpdate{true};
+
+  /// \brief Transport node for communication
+  public: transport::Node node;
+
+  /// \brief Topic name for enabling/disabling logging
+  public: std::string enableTopic{"/data_logger/enable"};
+
+  /// \brief Topic name for resetting logs
+  public: std::string resetTopic{"/data_logger/reset"};
+
+  /// \brief Flag to control logging state
+  public: bool loggingEnabled{false};
+
+  /// \brief Auto-start logging flag
+  public: bool autoStart{true};
 };
 
 /////////////////////////////////////////////////
@@ -113,6 +138,26 @@ void DataLoggerPlugin::Configure(const Entity &_entity,
                                 EntityComponentManager &_ecm,
                                 EventManager &/*_eventMgr*/)
 {
+  // Parse transport topics
+  if (_sdf->HasElement("enable_topic"))
+  {
+    this->dataPtr->enableTopic = _sdf->Get<std::string>("enable_topic");
+  }
+
+  if (_sdf->HasElement("reset_topic"))
+  {
+    this->dataPtr->resetTopic = _sdf->Get<std::string>("reset_topic");
+  }
+
+  // Parse auto-start option
+  if (_sdf->HasElement("auto_start"))
+  {
+    this->dataPtr->autoStart = _sdf->Get<bool>("auto_start");
+  }
+
+  // Set initial logging state
+  this->dataPtr->loggingEnabled = this->dataPtr->autoStart;
+
   // Parse log frequency
   if (_sdf->HasElement("log_frequency"))
   {
@@ -137,6 +182,53 @@ void DataLoggerPlugin::Configure(const Entity &_entity,
   {
     gzwarn << "Failed to create output directory: " << this->dataPtr->outputDirectory << std::endl;
   }
+
+  // Subscribe to control topics
+  this->dataPtr->node.Subscribe(this->dataPtr->enableTopic, 
+    std::function<void(const msgs::Boolean &)>(
+    [this](const msgs::Boolean &_msg)
+    {
+      this->dataPtr->loggingEnabled = _msg.data();
+      if (_msg.data())
+      {
+        // Reset timing when enabling logging
+        this->dataPtr->simStartTime = std::chrono::steady_clock::duration{0};
+        this->dataPtr->lastUpdateTime = std::chrono::steady_clock::duration{0};
+        gzmsg << "DataLogger: Logging ENABLED" << std::endl;
+      }
+      else
+      {
+        gzmsg << "DataLogger: Logging DISABLED" << std::endl;
+      }
+    }));
+
+  this->dataPtr->node.Subscribe(this->dataPtr->resetTopic,
+    std::function<void(const msgs::Empty &)>(
+    [this](const msgs::Empty &/*_msg*/)
+    {
+      // Reset timing and clear log files
+      this->dataPtr->simStartTime = std::chrono::steady_clock::duration{0};
+      this->dataPtr->lastUpdateTime = std::chrono::steady_clock::duration{0};
+      
+      // Rewrite headers for all log files
+      for (auto &entityInfo : this->dataPtr->entities)
+      {
+        if (entityInfo.logFile && entityInfo.logFile->is_open())
+        {
+          entityInfo.logFile->close();
+          std::string filename = this->dataPtr->outputDirectory + "/" + 
+                                entityInfo.name + "_log.csv";
+          entityInfo.logFile->open(filename, std::ios::trunc);  // Truncate existing file
+          (*entityInfo.logFile) << "timestamp,pos_x,pos_y,pos_z,vel_x,vel_y,vel_z,acc_x,acc_y,acc_z" << std::endl;
+          (*entityInfo.logFile) << std::fixed << std::setprecision(6);
+        }
+        
+        // Reset acceleration computation state
+        entityInfo.hasLastVelocity = false;
+        entityInfo.lastVelocity = math::Vector3d::Zero;
+      }
+      gzmsg << "DataLogger: Logs RESET and cleared" << std::endl;
+    }));
 
   // Parse entities to log
   if (_sdf->HasElement("entities"))
@@ -183,6 +275,10 @@ void DataLoggerPlugin::Configure(const Entity &_entity,
   gzmsg << "DataLoggerPlugin configured with " << this->dataPtr->entities.size() 
         << " entities to log at " << this->dataPtr->logFrequency << " Hz" << std::endl;
   gzmsg << "Output directory: " << this->dataPtr->outputDirectory << std::endl;
+  gzmsg << "Enable topic: " << this->dataPtr->enableTopic << std::endl;
+  gzmsg << "Reset topic: " << this->dataPtr->resetTopic << std::endl;
+  gzmsg << "Auto-start: " << (this->dataPtr->autoStart ? "enabled" : "disabled") << std::endl;
+  gzmsg << "Logging initially: " << (this->dataPtr->loggingEnabled ? "enabled" : "disabled") << std::endl;
 }
 
 /////////////////////////////////////////////////
@@ -246,8 +342,8 @@ void DataLoggerPlugin::PreUpdate(const UpdateInfo &_info,
         
         if (entityInfo.logFile->is_open())
         {
-          // Write CSV header - only position and velocity (no rotation or acceleration)
-          (*entityInfo.logFile) << "timestamp,pos_x,pos_y,pos_z,vel_x,vel_y,vel_z" << std::endl;
+          // Write CSV header - position, velocity, and acceleration (no rotation)
+          (*entityInfo.logFile) << "timestamp,pos_x,pos_y,pos_z,vel_x,vel_y,vel_z,acc_x,acc_y,acc_z" << std::endl;
           (*entityInfo.logFile) << std::fixed << std::setprecision(6);
           gzmsg << "Created log file: " << filename << std::endl;
         }
@@ -307,7 +403,7 @@ void DataLoggerPlugin::PreUpdate(const UpdateInfo &_info,
         {
           _ecm.CreateComponent(entity, components::WorldLinearVelocity());
         }
-        // Removed LinearAcceleration component creation - not needed for position/velocity logging
+        // Note: We'll compute acceleration by differentiating velocity
       }
     }
   }
@@ -317,8 +413,8 @@ void DataLoggerPlugin::PreUpdate(const UpdateInfo &_info,
 void DataLoggerPlugin::PostUpdate(const UpdateInfo &_info,
                                  const EntityComponentManager &_ecm)
 {
-  // Skip if paused
-  if (_info.paused)
+  // Skip if paused OR logging disabled
+  if (_info.paused || !this->dataPtr->loggingEnabled)
     return;
 
   // Initialize timing on first PostUpdate
@@ -334,6 +430,12 @@ void DataLoggerPlugin::PostUpdate(const UpdateInfo &_info,
   if (_info.simTime - this->dataPtr->lastUpdateTime < this->dataPtr->logInterval)
   {
     return;
+  }
+
+  // Reset start time if this is the first log after enabling
+  if (this->dataPtr->simStartTime == std::chrono::steady_clock::duration{0})
+  {
+    this->dataPtr->simStartTime = _info.simTime;
   }
 
   this->dataPtr->lastUpdateTime = _info.simTime;
@@ -425,6 +527,7 @@ void DataLoggerPlugin::PostUpdate(const UpdateInfo &_info,
     // Default values
     math::Pose3d pose = math::Pose3d::Zero;
     math::Vector3d velocity = math::Vector3d::Zero;
+    math::Vector3d acceleration = math::Vector3d::Zero;
 
     // Extract data if components exist (prefer World components)
     if (worldPoseComp)
@@ -445,10 +548,26 @@ void DataLoggerPlugin::PostUpdate(const UpdateInfo &_info,
       velocity = velComp->Data();
     }
 
-    // Write to log file - only position and velocity data
+    // Compute acceleration by differentiating velocity
+    if (entityInfo.hasLastVelocity)
+    {
+      double dt = std::chrono::duration<double>(_info.simTime - entityInfo.lastTime).count();
+      if (dt > 0.0)
+      {
+        acceleration = (velocity - entityInfo.lastVelocity) / dt;
+      }
+    }
+    
+    // Update stored values for next iteration
+    entityInfo.lastVelocity = velocity;
+    entityInfo.lastTime = _info.simTime;
+    entityInfo.hasLastVelocity = true;
+
+    // Write to log file - position, velocity, and acceleration data
     (*entityInfo.logFile) << relativeTime << ","
                       << pose.Pos().X() << "," << pose.Pos().Y() << "," << pose.Pos().Z() << ","
-                      << velocity.X() << "," << velocity.Y() << "," << velocity.Z() << std::endl;
+                      << velocity.X() << "," << velocity.Y() << "," << velocity.Z() << ","
+                      << acceleration.X() << "," << acceleration.Y() << "," << acceleration.Z() << std::endl;
   }
 }
 

@@ -129,7 +129,15 @@
     <!-- Data Logger Plugin -->
     <plugin filename="libDataLoggerPlugin.so" name="DataLoggerPlugin">
       <log_frequency>50</log_frequency>
-      <output_directory>/tmp/drone_sim_logs</output_directory>
+      <output_directory>/home/eric/tmp/drone_sim_logs</output_directory>
+      
+      <!-- Transport control topics -->
+      <enable_topic>/data_logger/enable</enable_topic>
+      <reset_topic>/data_logger/reset</reset_topic>
+      
+      <!-- Auto-start setting: false = start disabled, true = start enabled -->
+      <auto_start>false</auto_start>
+      
       <entities>
         <entity>
           <name>iris_with_standoffs</name>

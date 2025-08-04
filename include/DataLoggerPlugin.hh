@@ -42,6 +42,9 @@ class DataLoggerPluginPrivate;
 /// Parameters:
 ///   <log_frequency>   Logging frequency in Hz (default: 100)
 ///   <output_directory> Directory to store log files (default: /tmp)
+///   <auto_start>      Start logging immediately (default: true)
+///   <enable_topic>    Topic to enable/disable logging (default: /data_logger/enable)
+///   <reset_topic>     Topic to reset log files (default: /data_logger/reset)
 ///   <entities>        List of entity names to log data for
 ///     <entity>
 ///       <name>          Entity name to search for
@@ -53,6 +56,9 @@ class DataLoggerPluginPrivate;
 /// <plugin filename="libDataLoggerPlugin.so" name="gz::sim::systems::DataLoggerPlugin">
 ///   <log_frequency>50</log_frequency>
 ///   <output_directory>/tmp</output_directory>
+///   <auto_start>false</auto_start>
+///   <enable_topic>/data_logger/enable</enable_topic>
+///   <reset_topic>/data_logger/reset</reset_topic>
 ///   <entities>
 ///     <entity>
 ///       <name>iris_with_fixed_camera</name>
@@ -64,6 +70,11 @@ class DataLoggerPluginPrivate;
 ///     </entity>
 ///   </entities>
 /// </plugin>
+///
+/// Control commands:
+///   gz topic -t "/data_logger/enable" -m gz.msgs.Boolean -p "data: true"
+///   gz topic -t "/data_logger/enable" -m gz.msgs.Boolean -p "data: false"
+///   gz topic -t "/data_logger/reset" -m gz.msgs.Empty
 class GZ_SIM_VISIBLE DataLoggerPlugin:
   public gz::sim::System,
   public gz::sim::ISystemConfigure,
