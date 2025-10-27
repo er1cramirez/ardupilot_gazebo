@@ -122,33 +122,14 @@
 
     <include>
       <uri>model://moving_platform</uri>
-      <pose degrees="true">0 0 0 0 0 0</pose>
+      <pose degrees="true">1.5 0 0 0 0 0</pose>
       <name>moving_platform</name>
     </include>
 
+    
+
+
     <!-- Data Logger Plugin -->
-    <plugin filename="libDataLoggerPlugin.so" name="DataLoggerPlugin">
-      <log_frequency>50</log_frequency>
-      <output_directory>/home/eric/tmp/drone_sim_logs</output_directory>
-      
-      <!-- Transport control topics -->
-      <enable_topic>/data_logger/enable</enable_topic>
-      <reset_topic>/data_logger/reset</reset_topic>
-      
-      <!-- Auto-start setting: false = start disabled, true = start enabled -->
-      <auto_start>false</auto_start>
-      
-      <entities>
-        <entity>
-          <name>iris_with_standoffs</name>
-          <type>model</type>
-        </entity>
-        <entity>
-          <name>moving_platform</name>
-          <type>model</type>
-        </entity>
-      </entities>
-    </plugin>
 
   </world>
 </sdf>
