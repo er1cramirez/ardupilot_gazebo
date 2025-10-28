@@ -32,6 +32,49 @@
           </pbr>
         </material>
       </visual>
+      <!-- Coordinate axes for platform -->
+      <!-- <visual name="axis_x">
+        <pose>0.3 0 0.1 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.01</radius>
+            <length>0.6</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>1 0 0 1</ambient>
+          <diffuse>1 0 0 1</diffuse>
+          <emissive>0.5 0 0 1</emissive>
+        </material>
+      </visual>
+      <visual name="axis_y">
+        <pose>0 0.3 0.1 1.5707963 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.01</radius>
+            <length>0.6</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0 1 0 1</ambient>
+          <diffuse>0 1 0 1</diffuse>
+          <emissive>0 0.5 0 1</emissive>
+        </material>
+      </visual>
+      <visual name="axis_z">
+        <pose>0 0 0.4 0 1.5707963 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.01</radius>
+            <length>0.6</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0 0 1 1</ambient>
+          <diffuse>0 0 1 1</diffuse>
+          <emissive>0 0 0.5 1</emissive>
+        </material>
+      </visual> -->
       <collision name="platform_collision">
         <geometry>
           <box>
@@ -56,7 +99,7 @@
     <plugin filename="gz-sim-odometry-publisher-system"
             name="gz::sim::systems::OdometryPublisher">
       <dimensions>3</dimensions>
-      <odom_publish_frequency>100.0</odom_publish_frequency>
+      <odom_publish_frequency>60.0</odom_publish_frequency>
     </plugin>
     <!-- <plugin filename="gz-sim-pose-publisher-system" 
             name="gz::sim::systems::PosePublisher">
@@ -69,8 +112,8 @@
       name="gz::sim::systems::VelocityControl">
       <!-- vels for circle moving y=-1 ang_z=-0.2 v = wr, w = v/r -->
       <!-- r = 1.5, for v = 0.5 -> w = 0.5/1.5 = 0.33333, for v = 0.2 -> w = 0.2/1.5 = 0.13333 -->
-      <initial_linear>0 0.2 0</initial_linear>
-      <initial_angular>0 0 0.133333</initial_angular>
+      <initial_linear>0 0 0</initial_linear>
+      <initial_angular>0 0 0.0</initial_angular>
       <lin_vel_min>-1 -1 -1</lin_vel_min>
       <lin_vel_max>1 1 1</lin_vel_max>
       <ang_vel_min>-1 -1 -1</ang_vel_min>

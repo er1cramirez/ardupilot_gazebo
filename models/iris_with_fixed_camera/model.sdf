@@ -6,9 +6,9 @@
     </include>
 
     <include>
-      <uri>model://downward_camera</uri>
+      <uri>model://generic_camera</uri>
       <name>camera</name>
-      <pose degrees='true'>0 0 -0.04 0 180 0</pose>
+      <pose degrees='true'>0 0 -0.04 0 90 0</pose>
     </include>
 
     <joint name="camera_joint" type="fixed">
@@ -20,7 +20,7 @@
     <plugin filename="gz-sim-odometry-publisher-system"
             name="gz::sim::systems::OdometryPublisher">
       <dimensions>3</dimensions>
-      <odom_publish_frequency>100.0</odom_publish_frequency>
+      <odom_publish_frequency>60.0</odom_publish_frequency>
     </plugin>
     <!-- <plugin filename="gz-sim-pose-publisher-system" 
             name="gz::sim::systems::PosePublisher">

@@ -1,0 +1,191 @@
+<?xml version='1.0'?>
+<!-- generic_camera_default.sdf
+     Cámara genérica en orientación DEFAULT de Gazebo
+     - Sin rotación en el modelo
+     - Ejes muestran orientación default (X derecha, Y abajo, Z adelante)
+     - Los ejes se rotan cuando aplicas transformación en <include>
+-->
+<sdf version='1.9'>
+  <model name='generic_camera'>
+    <pose>0 0 0 0 0 0</pose>
+    <self_collide>false</self_collide>
+    <static>false</static>
+    <link name='camera_link'>
+      <inertial>
+        <pose>0 0 0 0 0 0</pose>
+        <mass>0.050</mass>
+        <inertia>
+          <ixx>0.00004</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.00004</iyy>
+          <iyz>0</iyz>
+          <izz>0.00004</izz>
+        </inertia>
+      </inertial>
+      
+      <!-- ================================================ -->
+      <!-- VISUAL - CUERPO DE LA CÁMARA                     -->
+      <!-- ================================================ -->
+      <!-- <visual name='camera_body'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.025</radius>
+            <length>0.040</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.3 0.3 0.3 1</ambient>
+          <diffuse>0.4 0.4 0.4 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+        </material>
+      </visual> -->
+      
+      <!-- ================================================ -->
+      <!-- EJES COORDENADOS - MARCO DE REFERENCIA CÁMARA   -->
+      <!-- ================================================ -->
+      <!-- Convención estándar de cámara en orientación default Gazebo:
+           Vista del mundo: +X adelante, +Y izquierda, +Z arriba
+           
+           x_cámara: horizontal derecha en imagen → -Y mundo (derecha del monitor)
+           y_cámara: vertical abajo en imagen     → -Z mundo (abajo del monitor)
+           z_cámara: eje óptico/profundidad       → +X mundo (adelante)
+           
+           La imagen capturada corresponde al plano YZ del mundo
+      -->
+      
+      <!-- Eje X de la cámara (rojo) = horizontal derecha = -Y mundo -->
+      <visual name="axis_x">
+        <pose>0 -0.08 0 1.5707963 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.004</radius>
+            <length>0.16</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>1 0 0 1</ambient>
+          <diffuse>1 0 0 1</diffuse>
+          <emissive>0.8 0 0 1</emissive>
+        </material>
+      </visual>
+      
+      <!-- Eje Y de la cámara (verde) = vertical abajo = -Z mundo -->
+      <visual name="axis_y">
+        <pose>0 0 -0.08 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.004</radius>
+            <length>0.16</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0 1 0 1</ambient>
+          <diffuse>0 1 0 1</diffuse>
+          <emissive>0 0.8 0 1</emissive>
+        </material>
+      </visual>
+      
+      <!-- Eje Z de la cámara (azul) = eje óptico/profundidad = +X mundo
+      <visual name="axis_z">
+        <pose>0.08 0 0 0 1.5707963 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.006</radius>
+            <length>0.16</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0 0 1 1</ambient>
+          <diffuse>0 0 1 1</diffuse>
+          <emissive>1 1 0 1</emissive>
+        </material>
+      </visual> -->
+      
+      <!-- Etiquetas en las puntas de los ejes -->
+      <!-- <visual name="label_x">
+        <pose>0 -0.17 0 0 0 0</pose>
+        <geometry>
+          <sphere>
+            <radius>0.01</radius>
+          </sphere>
+        </geometry>
+        <material>
+          <ambient>1 0 0 1</ambient>
+          <diffuse>1 0 0 1</diffuse>
+          <emissive>1 0 0 1</emissive>
+        </material>
+      </visual>
+      
+      <visual name="label_y">
+        <pose>0 0 -0.17 0 0 0</pose>
+        <geometry>
+          <sphere>
+            <radius>0.01</radius>
+          </sphere>
+        </geometry>
+        <material>
+          <ambient>0 1 0 1</ambient>
+          <diffuse>0 1 0 1</diffuse>
+          <emissive>0 1 0 1</emissive>
+        </material>
+      </visual>
+      
+      <visual name="label_z">
+        <pose>0.17 0 0 0 0 0</pose>
+        <geometry>
+          <sphere>
+            <radius>0.015</radius>
+          </sphere>
+        </geometry>
+        <material>
+          <ambient>0 0 1 1</ambient>
+          <diffuse>0 0 1 1</diffuse>
+          <emissive>1 1 0 1</emissive>
+        </material>
+      </visual>
+     -->
+      
+      <!-- ================================================ -->
+      <!-- COLISIÓN                                          -->
+      <!-- ================================================ -->
+      <collision name='camera_col'>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.025</radius>
+            <length>0.020</length>
+          </cylinder>
+        </geometry>
+      </collision>
+      
+      <!-- ================================================ -->
+      <!-- SENSOR DE CÁMARA - ORIENTACIÓN DEFAULT           -->
+      <!-- ================================================ -->
+      <!-- Sin rotación - orientación default de Gazebo
+           Mira en dirección +Z (hacia adelante)
+      -->
+      <sensor name="camera" type="camera">
+        <pose degrees="true">0 0 0 0 0 0</pose>
+        
+        <camera>
+          <horizontal_fov>1.047</horizontal_fov>
+          <image>
+            <width>1080</width>
+            <height>1080</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.1</near>
+            <far>100</far>
+          </clip>
+        </camera>
+        
+        <always_on>1</always_on>
+        <update_rate>60</update_rate>
+        <visualize>false</visualize>
+      </sensor>
+    </link>
+  </model>
+</sdf>

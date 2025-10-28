@@ -42,6 +42,8 @@
         </surface>
       </collision>
       <visual name='base_visual'>
+        <!-- Add 180 deg yaw rotation -->
+        <pose degrees='true'>0 0 0 0 0 180</pose>
         <geometry>
           <mesh>
             <uri>model://iris_with_standoffs/meshes/iris.dae</uri>
@@ -138,6 +140,49 @@
               <roughness>0.5</roughness>
             </metal>
           </pbr>
+        </material>
+      </visual>
+      <!-- Coordinate axes for drone base_link -->
+      <visual name="axis_x">
+        <pose>0.15 0 0 0 1.5707963 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.008</radius>
+            <length>0.3</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>1 0 0 1</ambient>
+          <diffuse>1 0 0 1</diffuse>
+          <emissive>0.8 0 0 1</emissive>
+        </material>
+      </visual>
+      <visual name="axis_y">
+        <pose>0 0.15 0 1.5707963 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.008</radius>
+            <length>0.3</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0 1 0 1</ambient>
+          <diffuse>0 1 0 1</diffuse>
+          <emissive>0 0.8 0 1</emissive>
+        </material>
+      </visual>
+      <visual name="axis_z">
+        <pose>0 0 0.15 0 0 0</pose>
+        <geometry>
+          <cylinder>
+            <radius>0.008</radius>
+            <length>0.3</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0 0 1 1</ambient>
+          <diffuse>0 0 1 1</diffuse>
+          <emissive>0 0 0.8 1</emissive>
         </material>
       </visual>
     </link>
@@ -282,7 +327,7 @@
         </surface>
       </collision>
       <visual name='rotor_1_visual'>
-        <pose>0 0 0 0 0 0</pose>
+        <pose>0.0095 0.0195 0 0 0 0</pose>
         <geometry>
           <mesh>
             <scale>1 1 1</scale>
